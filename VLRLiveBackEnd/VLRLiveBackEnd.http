@@ -1,0 +1,6 @@
+@VLRLiveBackEnd_HostAddress = http://localhost:5285
+
+GET {{VLRLiveBackEnd_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
