@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using VLRLiveBackEnd.DTOs;
 using VLRLiveBackEnd.Models;
+using VLRLiveBackEnd.Models.Event;
 using VLRLiveBackEnd.Models.MatchDetails;
 using VLRLiveBackEnd.Models.Upcoming;
 
@@ -102,6 +103,67 @@ namespace VLRLiveBackEnd.Services
             }).ToList();
         }
 
+        public async Task<List<VLRTeamDto>> GetTeamsFromEventAsync(string eventId)
+        {
+            var response = await _httpClient.GetAsync($"/v2/event/{eventId}");
+
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var result = JsonSerializer.Deserialize<EventResponse>(json);
+
+            if (result?.data?.segments?.teams == null)
+            {
+                throw new Exception("No teams found for this event.");
+            }
+
+            return result.data.segments.teams
+                .Select(team => new VLRTeamDto
+                {
+                    Id = team.id,
+                    Name = team.name
+                })
+                .ToList();
+        }
+        public async Task<VLRTeamDto> GetTeamAsync(string teamId)
+        {
+            var response = await _httpClient.GetAsync(
+                $"/v2/team?id={teamId}");
+
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var result = JsonSerializer.Deserialize<TeamResponse>(json);
+
+            if (result?.data?.segments == null ||
+                result.data.segments.Length == 0)
+            {
+                throw new Exception($"Team {teamId} not found.");
+            }
+
+            var team = result.data.segments[0];
+
+            return new VLRTeamDto
+            {
+                Id = team.id,
+                Name = team.name,
+                Tag = team.tag,
+                Country = team.country,
+                Region = team.country, // we'll fix region later
+                Logo = team.logo
+            };
+        }
+        public async Task<string> GetTeamRawAsync(string teamId)
+        {
+            var response = await _httpClient.GetAsync(
+                $"/v2/team?id={teamId}&q=profile");
+
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsStringAsync();
+        }
 
     }
 }
