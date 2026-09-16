@@ -14,7 +14,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<VLRapiService>(client =>
 {
-    client.BaseAddress = new Uri("http://163.245.192.237:3001");
+   // client.BaseAddress = new Uri("http://163.245.192.237:3001");
+    client.BaseAddress = new Uri("http://127.0.0.1:3001");
 });
 
 builder.Services.AddHttpClient<TeamLogoService>();
