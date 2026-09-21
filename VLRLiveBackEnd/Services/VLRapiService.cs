@@ -70,6 +70,8 @@ namespace VLRLiveBackEnd.Services
                 Event = match._event?.name ?? "",
                 Team1 = match.teams[0].name,
                 Team2 = match.teams[1].name,
+                Team1Id = match.teams[0].id,
+                Team2Id = match.teams[1].id,
                 Team1Logo = match.teams[0].logo,
                 Team2Logo = match.teams[1].logo,
                 SeriesScore = $"{match.teams[0].score}-{match.teams[1].score}",
@@ -155,6 +157,43 @@ namespace VLRLiveBackEnd.Services
                 Logo = team.logo
             };
         }
+        // Only pulls the team ids out of a match (works for upcoming matches too)
+        public async Task<List<string>> GetMatchTeamIdsAsync(string matchId)
+        {
+            var response = await _httpClient.GetAsync($"/v2/match/details?match_id={matchId}");
+
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            using var doc = JsonDocument.Parse(json);
+
+            var ids = new List<string>();
+
+            if (doc.RootElement.TryGetProperty("data", out var data)
+                && data.TryGetProperty("segments", out var segments)
+                && segments.ValueKind == JsonValueKind.Array
+                && segments.GetArrayLength() > 0
+                && segments[0].TryGetProperty("teams", out var teams)
+                && teams.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var team in teams.EnumerateArray())
+                {
+                    if (!team.TryGetProperty("id", out var idElement))
+                        continue;
+
+                    var id = idElement.ValueKind == JsonValueKind.String
+                        ? idElement.GetString()
+                        : idElement.ToString();
+
+                    if (!string.IsNullOrWhiteSpace(id))
+                        ids.Add(id);
+                }
+            }
+
+            return ids;
+        }
+
         public async Task<string> GetTeamRawAsync(string teamId)
         {
             var response = await _httpClient.GetAsync(

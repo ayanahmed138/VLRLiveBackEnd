@@ -9,6 +9,9 @@
         public string Team1 { get; set; } = "";
         public string Team2 { get; set; } = "";
 
+        public string? Team1Id { get; set; }
+        public string? Team2Id { get; set; }
+
         public string? Team1Logo { get; set; } = "";
         public string? Team2Logo { get; set; } = "";
 

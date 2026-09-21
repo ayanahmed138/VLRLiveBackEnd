@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using VLRLiveBackEnd.Cache;
@@ -40,9 +41,30 @@ namespace VLRLiveBackEnd.Controllers
             return Ok(match);
         }
         [HttpGet("upcoming")]
-        public async Task<IActionResult> GetUpcoming()
+        public async Task<IActionResult> GetUpcoming(
+            [FromServices] TeamIconResolver iconResolver,
+            [FromServices] TeamSyncQueue syncQueue)
         {
-            return Ok(await _service.GetUpcomingMatchesAsync());
+            var matches = await _service.GetUpcomingMatchesAsync();
+            var icons = await iconResolver.GetIconsByNameAsync();
+
+            foreach (var match in matches)
+            {
+                match.Team1Logo = icons.GetValueOrDefault(match.Team1 ?? "");
+                match.Team2Logo = icons.GetValueOrDefault(match.Team2 ?? "");
+
+                // A logo is missing: ask the background worker to fetch it.
+                // This only adds to a list, so it does not slow this request down.
+                if (match.Team1Logo == null || match.Team2Logo == null)
+                {
+                    var matchId = Regex.Match(match.MatchPage ?? "", @"\d+").Value;
+
+                    if (matchId != "")
+                        syncQueue.EnqueueMatch(matchId);
+                }
+            }
+
+            return Ok(matches);
         }
         [HttpGet("event/{eventId}/teams")]
         public async Task<IActionResult> GetEventTeams(string eventId)

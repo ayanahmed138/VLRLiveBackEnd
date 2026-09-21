@@ -5,6 +5,9 @@ public class UpcomingMatchDto
     public string Team1 { get; set; } = "";
     public string Team2 { get; set; } = "";
 
+    public string? Team1Logo { get; set; }
+    public string? Team2Logo { get; set; }
+
     public string Event { get; set; } = "";
     public string Series { get; set; } = "";
 
