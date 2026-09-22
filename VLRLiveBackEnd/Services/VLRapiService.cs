@@ -63,6 +63,7 @@ namespace VLRLiveBackEnd.Services
             }
 
             var currentMap = match.maps.LastOrDefault();
+            var mapNumber = match.maps?.Length ?? 0;
 
             return new LiveMatchDetailsDto
             {
@@ -78,7 +79,8 @@ namespace VLRLiveBackEnd.Services
                 CurrentMap = currentMap?.map_name ?? "Not Started",
                 CurrentMapScore = currentMap == null
         ? "0-0"
-        : $"{currentMap.score.team1}-{currentMap.score.team2}"
+        : $"{currentMap.score.team1}-{currentMap.score.team2}",
+                MapNumber = mapNumber
             };
         }
 

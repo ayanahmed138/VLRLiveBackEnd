@@ -20,5 +20,10 @@
         public string? CurrentMap { get; set; } = "";
 
         public string? CurrentMapScore { get; set; } = "";
+
+        // 1-based: which map of the series this is (map 2, map 3...). 0 if the
+        // match hasn't started its first map yet. VLR's API has no explicit
+        // best-of-N field, so this is the closest reliable substitute.
+        public int MapNumber { get; set; }
     }
 }
